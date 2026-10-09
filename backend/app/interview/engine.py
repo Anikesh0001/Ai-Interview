@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import logging
+import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
@@ -13,7 +16,7 @@ from app.data.question_bank import CLOSING_LINES
 from app.interview import phrasing
 from app.interview.evaluator import evaluate_answer
 from app.interview.followups import build_follow_up, follow_up_tone, max_follow_ups, should_follow_up
-from app.interview.generator import DIFFICULTIES, InterviewContext, generate_question
+from app.interview.generator import DIFFICULTIES, GeneratedQuestion, InterviewContext, generate_question
 from app.interview.planner import build_plan
 from app.interview.state import QUESTION_STATES, State, assert_transition
 from app.interview.textutil import question_hash
@@ -49,6 +52,22 @@ class InterviewError(Exception):
         super().__init__(user_message)
         self.user_message = user_message
         self.status_code = status_code
+
+
+# SQLite allows one writer at a time, and LLM calls can take minutes on a laptop CPU. So every step below
+# does its slow LLM work *before* its first write (sessions don't autoflush), then writes and commits at once.
+# Steps on the same interview are also serialized: a duplicate submit (double click, page reload mid-request)
+# waits for the first one and then sees its result, instead of racing it.
+_interview_locks: dict[str, threading.Lock] = {}
+_interview_locks_guard = threading.Lock()
+
+
+@contextmanager
+def interview_lock(interview_id: str) -> Iterator[None]:
+    with _interview_locks_guard:
+        lock = _interview_locks.setdefault(interview_id, threading.Lock())
+    with lock:
+        yield
 
 
 def _now() -> datetime:
@@ -172,16 +191,23 @@ def create_interview(db: Session, resume: Resume, config: InterviewConfig, jd_ro
     return interview
 
 
-def _ask_main(db: Session, interview: Interview, lead_in: str) -> None:
-    """Ask the next planned question, or close the interview when the plan is exhausted."""
+def _prepare_main(interview: Interview) -> GeneratedQuestion | None:
+    """Generate the next planned question (may call the LLM; writes nothing). None when the plan is exhausted."""
     if interview.plan_index >= len(interview.plan):
+        return None
+    slot = interview.plan[interview.plan_index]
+    hashes, texts = _asked(interview)
+    difficulty = interview.runtime.get("difficulty", "Medium")
+    return generate_question(slot, _context(interview), difficulty, hashes, texts)
+
+
+def _ask_main(db: Session, interview: Interview, lead_in: str, generated: GeneratedQuestion | None) -> None:
+    """Ask the question from _prepare_main, or close the interview when the plan is exhausted."""
+    if generated is None:
         _close(db, interview, lead_in)
         return
     slot = interview.plan[interview.plan_index]
-    ctx = _context(interview)
-    hashes, texts = _asked(interview)
-    difficulty = interview.runtime.get("difficulty", "Medium")
-    generated = generate_question(slot, ctx, difficulty, hashes, texts)
+    profile = _profile(interview)
     q = generated.schema
     phase = slot["phase"]
     phase_changed = interview.state not in (phase, State.CHALLENGE.value) or (
@@ -201,7 +227,7 @@ def _ask_main(db: Session, interview: Interview, lead_in: str) -> None:
         expected_concepts=q.expected_concepts,
         rubric=q.evaluation_rubric,
         ideal_answer=q.ideal_answer,
-        claim=q.claim or _project_claim(ctx.profile, slot),
+        claim=q.claim or _project_claim(profile, slot),
         is_follow_up=False,
         generated_by=generated.generated_by,
     )
@@ -254,13 +280,18 @@ def start_interview(db: Session, interview: Interview) -> Interview:
     if interview.state != State.CREATED.value:
         return interview  # idempotent: a refresh/double-click must not restart the interview
     cfg = InterviewConfig.model_validate(interview.config)
+    try:
+        first = _prepare_main(interview)
+    except Exception:
+        logger.exception("failed to prepare first question")
+        raise InterviewError("We couldn't prepare the interview. Please try again.", 500) from None
     _transition(db, interview, State.PREPARING.value)
     interview.started_at = _now()
     profile = _profile(interview)
     for line in phrasing.greeting(cfg.personality, cfg.target_role, profile.name, cfg.num_questions, cfg.mode):
         _event(db, interview, type_="message", role="interviewer", text=line, meta={"phase": "INTRO"})
     try:
-        _ask_main(db, interview, "")
+        _ask_main(db, interview, "", first)
     except Exception:
         logger.exception("failed to prepare first question")
         db.rollback()
@@ -338,21 +369,7 @@ def submit_answer(db: Session, interview: Interview, req: AnswerRequest) -> Inte
     text = text[: get_settings().max_answer_chars]
     cfg = InterviewConfig.model_validate(interview.config)
 
-    answer = Answer(
-        interview_id=interview.id, text=text, input_mode=req.input_mode, duration_seconds=req.duration_seconds
-    )
-    question.answer = answer
-    db.flush()
-    _event(
-        db,
-        interview,
-        type_="message",
-        role="candidate",
-        text=text,
-        question_id=question.id,
-        meta={"input_mode": req.input_mode},
-    )
-
+    # 1) Slow LLM work first, nothing written yet (see interview_lock).
     result = evaluate_answer(
         question=question.text,
         category=question.category,
@@ -363,7 +380,6 @@ def submit_answer(db: Session, interview: Interview, req: AnswerRequest) -> Inte
         role=cfg.target_role,
         level=cfg.experience_level,
     )
-    _store_evaluation(db, interview, answer, result)
     _adapt(interview, result.classification)
     history = list(interview.runtime.get("history", []))
     history.append(f"Q: {question.text[:160]} | A: {text[:240]}")
@@ -371,6 +387,7 @@ def submit_answer(db: Session, interview: Interview, req: AnswerRequest) -> Inte
 
     seq_main = sum(1 for q in interview.questions if not q.is_follow_up)
     depth = _follow_up_depth(interview, question)
+    fu = None
     if should_follow_up(
         result,
         category=question.category,
@@ -394,14 +411,30 @@ def submit_answer(db: Session, interview: Interview, req: AnswerRequest) -> Inte
             asked_hashes=hashes,
             asked_texts=texts,
         )
-        if fu is not None:
-            _ask_follow_up(db, interview, question, fu, result.classification, cfg)
-            db.commit()
-            return interview
+    following = _prepare_main(interview) if fu is None else None
 
-    tone = "positive" if result.classification in ("Excellent", "Strong") else "neutral"
-    ack = phrasing.acknowledgement(cfg.personality, tone, seq_main)
-    _ask_main(db, interview, ack)
+    # 2) Write everything in one short transaction.
+    answer = Answer(
+        interview_id=interview.id, text=text, input_mode=req.input_mode, duration_seconds=req.duration_seconds
+    )
+    question.answer = answer
+    db.flush()
+    _event(
+        db,
+        interview,
+        type_="message",
+        role="candidate",
+        text=text,
+        question_id=question.id,
+        meta={"input_mode": req.input_mode},
+    )
+    _store_evaluation(db, interview, answer, result)
+    if fu is not None:
+        _ask_follow_up(db, interview, question, fu, result.classification, cfg)
+    else:
+        tone = "positive" if result.classification in ("Excellent", "Strong") else "neutral"
+        ack = phrasing.acknowledgement(cfg.personality, tone, seq_main)
+        _ask_main(db, interview, ack, following)
     db.commit()
     return interview
 
@@ -453,18 +486,6 @@ def skip_question(db: Session, interview: Interview, question_id: str) -> Interv
     question = _current_question(interview)
     if question is None or question.id != question_id:
         raise InterviewError("That question is no longer active. Refresh to continue the interview.", 409)
-    answer = Answer(interview_id=interview.id, text="", input_mode="text", skipped=True)
-    question.answer = answer
-    db.flush()
-    _event(
-        db,
-        interview,
-        type_="message",
-        role="candidate",
-        text="(Skipped this question)",
-        question_id=question.id,
-        meta={"skipped": True},
-    )
     result = evaluate_answer(
         question=question.text,
         category=question.category,
@@ -479,9 +500,23 @@ def skip_question(db: Session, interview: Interview, question_id: str) -> Interv
     result.feedback = "You skipped this question."
     if question.claim and question.category == "claim_verification":
         result.claim_confidence = "Low"
-    _store_evaluation(db, interview, answer, result)
     _adapt(interview, "Incomplete")
-    _ask_main(db, interview, "No problem, let's move on.")
+    following = _prepare_main(interview)  # may call the LLM: before any write
+
+    answer = Answer(interview_id=interview.id, text="", input_mode="text", skipped=True)
+    question.answer = answer
+    db.flush()
+    _event(
+        db,
+        interview,
+        type_="message",
+        role="candidate",
+        text="(Skipped this question)",
+        question_id=question.id,
+        meta={"skipped": True},
+    )
+    _store_evaluation(db, interview, answer, result)
+    _ask_main(db, interview, "No problem, let's move on.", following)
     db.commit()
     return interview
 

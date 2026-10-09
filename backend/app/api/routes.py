@@ -370,25 +370,29 @@ def get_interview(interview_id: str, db: Session = Depends(get_db)):
 
 @router.post("/interviews/{interview_id}/start", response_model=InterviewOut)
 def start_interview(interview_id: str, db: Session = Depends(get_db)):
-    interview = engine.start_interview(db, _get_interview(db, interview_id))
+    with engine.interview_lock(interview_id):
+        interview = engine.start_interview(db, _get_interview(db, interview_id))
     return engine.interview_view(interview)
 
 
 @router.post("/interviews/{interview_id}/answer", response_model=InterviewOut)
 def answer_question(interview_id: str, body: AnswerRequest, db: Session = Depends(get_db)):
-    interview = engine.submit_answer(db, _get_interview(db, interview_id), body)
+    with engine.interview_lock(interview_id):
+        interview = engine.submit_answer(db, _get_interview(db, interview_id), body)
     return engine.interview_view(interview)
 
 
 @router.post("/interviews/{interview_id}/next-question", response_model=InterviewOut)
 def skip_to_next(interview_id: str, body: SkipRequest, db: Session = Depends(get_db)):
-    interview = engine.skip_question(db, _get_interview(db, interview_id), body.question_id)
+    with engine.interview_lock(interview_id):
+        interview = engine.skip_question(db, _get_interview(db, interview_id), body.question_id)
     return engine.interview_view(interview)
 
 
 @router.post("/interviews/{interview_id}/finish", response_model=InterviewOut)
 def finish(interview_id: str, db: Session = Depends(get_db)):
-    interview = engine.finish_interview(db, _get_interview(db, interview_id))
+    with engine.interview_lock(interview_id):
+        interview = engine.finish_interview(db, _get_interview(db, interview_id))
     return engine.interview_view(interview)
 
 
