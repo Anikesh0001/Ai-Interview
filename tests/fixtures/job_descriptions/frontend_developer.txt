@@ -1,0 +1,21 @@
+Frontend Developer
+
+Join our design-focused product team to build fast, accessible interfaces used by thousands of small businesses.
+
+Responsibilities
+- Build responsive, accessible user interfaces with React and TypeScript
+- Translate Figma designs into reusable components in our design system
+- Manage application state and integrate with REST and GraphQL APIs
+- Improve web performance and Core Web Vitals
+- Write unit and end-to-end tests
+
+Requirements
+- 1+ years of experience in frontend development
+- Strong JavaScript, TypeScript, HTML and CSS skills
+- Production experience with React
+- Understanding of accessibility (WCAG) and responsive design
+- Experience with Git and code reviews
+
+Nice to have
+- Next.js, Tailwind CSS or Redux
+- Experience with Jest or Playwright

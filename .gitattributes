@@ -1,0 +1,13 @@
+# Keep LF in the repository and in checkouts on every OS: shell scripts break with CRLF and the
+# Prettier/ruff checks expect LF. Windows batch files are the exception.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+*.pdf binary
+*.docx binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.db binary

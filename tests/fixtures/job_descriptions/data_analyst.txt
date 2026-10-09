@@ -1,0 +1,20 @@
+Data Analyst
+
+We are looking for a Data Analyst to turn product and sales data into insights that guide business decisions.
+
+Responsibilities
+- Write SQL queries to extract, clean and analyze data from our data warehouse
+- Build dashboards and reports in Tableau or Power BI for stakeholders
+- Define and track KPIs and investigate trends and anomalies
+- Run A/B test analyses and communicate findings to non-technical teams
+
+Requirements
+- Bachelor's degree in Statistics, Mathematics, Computer Science, Economics or related field
+- 1+ years of experience in data analysis
+- Advanced SQL and Excel skills
+- Experience with Python (Pandas) or R for data analysis
+- Solid understanding of statistics and hypothesis testing
+- Strong communication and data visualization skills
+
+Nice to have
+- Experience with ETL pipelines and Airflow

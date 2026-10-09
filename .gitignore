@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+backend/.venv/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/*.tsbuildinfo
+
+# Local data (resumes, interviews) — never commit
+data/*
+!data/.gitkeep
+uploads/*
+!uploads/.gitkeep
+
+# Secrets / env
+.env
+*.local
+
+.DS_Store

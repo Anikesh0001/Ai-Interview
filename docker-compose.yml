@@ -1,0 +1,15 @@
+# Optional. Ollama is expected to run on the host (ollama serve); data persists in ./data and ./uploads.
+services:
+  interviewforge:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b}
+      CORS_ORIGINS: http://localhost:8000,http://127.0.0.1:8000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads

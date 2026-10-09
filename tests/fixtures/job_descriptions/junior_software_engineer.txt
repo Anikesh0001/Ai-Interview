@@ -1,0 +1,25 @@
+Junior Software Engineer
+
+About the role
+We are looking for a Junior Software Engineer to join our product engineering team. You will build and maintain features across our web platform, working closely with senior engineers, product and design.
+
+Responsibilities
+- Design, build and test features for our customer-facing web application
+- Write clean, maintainable code in Python or Java and participate in code reviews
+- Build and consume REST APIs and work with relational databases
+- Debug production issues and improve application performance
+- Collaborate in an Agile team with two-week sprints
+
+Requirements
+- Bachelor's degree in Computer Science or a related field
+- 0-2 years of experience in software development (internships count)
+- Strong fundamentals in data structures, algorithms and object-oriented programming
+- Experience with Python or Java
+- Working knowledge of SQL and relational databases such as PostgreSQL or MySQL
+- Familiarity with Git and version control workflows
+- Understanding of REST APIs
+
+Nice to have
+- Experience with React or another modern JavaScript framework
+- Exposure to Docker, CI/CD or AWS
+- Experience writing unit tests

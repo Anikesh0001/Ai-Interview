@@ -1,0 +1,47 @@
+Aarav Sharma
+Pune, Maharashtra | aarav.sharma.dev@example.com | +91 98765 43210
+linkedin.com/in/aarav-sharma-dev | github.com/aarav-sharma-dev
+
+SUMMARY
+Final-year Computer Science student who builds full-stack web applications with React and Flask. Comfortable with SQL, REST APIs and Git, and interested in backend engineering and applied AI.
+
+EDUCATION
+B.Tech in Computer Science and Engineering | Vishwakarma Institute of Technology, Pune | 2022 - 2026
+CGPA: 8.7/10
+Relevant coursework: Data Structures, Operating Systems, Database Management Systems, Computer Networks
+
+TECHNICAL SKILLS
+Languages: Python, Java, JavaScript, SQL, HTML, CSS
+Frameworks: React, Flask, Bootstrap
+Databases: PostgreSQL, MySQL, SQLite
+Tools: Git, GitHub, Docker, Postman, Linux
+
+EXPERIENCE
+Software Engineering Intern | BrightCart Retail Pvt. Ltd. | May 2025 - Jul 2025
+• Built 6 REST API endpoints in Flask for the order-tracking dashboard used by 40+ store managers.
+• Reduced API latency by 40% by adding database indexes and caching frequent queries with Redis.
+• Wrote unit tests with Pytest, raising backend test coverage from 35% to 70%.
+• Collaborated with the frontend team in two-week Agile sprints and reviewed pull requests on GitHub.
+
+PROJECTS
+Hospital Management System | React, Flask, PostgreSQL
+• Developed a full-stack system for appointment booking, patient records and billing for a 3-doctor clinic.
+• Designed a normalized PostgreSQL schema with 12 tables and role-based access control using JWT authentication.
+• Deployed the application with Docker on a Linux VM, serving 150+ patient records during a pilot.
+
+AI Sales Chatbot | Python, Flask, NLP
+• Built a chatbot that answers product questions using intent classification with scikit-learn.
+• Achieved 87% intent accuracy on a 1,200-message labelled dataset.
+• Integrated the bot into a React widget and logged conversations to MySQL for analysis.
+
+Resume Analyzer | Python, JavaScript
+• Created a web tool that extracts skills from resumes and compares them against job descriptions.
+• Implemented keyword matching and scoring logic; used by 60+ classmates during placement season.
+
+CERTIFICATIONS
+• AWS Cloud Practitioner Essentials (AWS Skill Builder), 2025
+• Python for Everybody (Coursera), 2023
+
+ACHIEVEMENTS
+• Finalist, Smart India Hackathon 2024 among 500+ teams.
+• Led a team of 4 to build a campus lost-and-found app adopted by the student council.

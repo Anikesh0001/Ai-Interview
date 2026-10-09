@@ -1,0 +1,23 @@
+Backend Developer
+
+We are hiring a Backend Developer to design and scale the APIs that power our logistics platform, which handles millions of shipment events per day.
+
+What you'll do
+- Design and implement scalable REST APIs and background services
+- Model data and optimize queries in PostgreSQL
+- Implement caching with Redis and asynchronous processing with Kafka or RabbitMQ
+- Own authentication and authorization flows (OAuth2, JWT)
+- Improve reliability through monitoring, logging and alerting
+- Participate in on-call and incident reviews
+
+Requirements
+- 2+ years of experience building backend services
+- Strong proficiency in Python (Django, Flask or FastAPI) or Node.js
+- Solid understanding of SQL, database design and indexing
+- Experience with Docker and deploying services on AWS
+- Knowledge of microservices and distributed system fundamentals
+- Experience writing automated tests
+
+Preferred
+- Experience with Kubernetes and Terraform
+- Familiarity with system design for high-throughput systems
