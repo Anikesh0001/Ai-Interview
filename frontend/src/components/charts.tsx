@@ -111,6 +111,8 @@ export function RadarChart({ items }: { items: { label: string; score: number | 
   const cx = size / 2
   const cy = size / 2
   const R = 92
+  // Side labels sit outside the grid; room for the longest ("Communication") so it isn't clipped.
+  const padX = 52
   const n = items.length
   if (n < 3) return null
   const pt = (i: number, v: number) => {
@@ -119,9 +121,9 @@ export function RadarChart({ items }: { items: { label: string; score: number | 
   }
   const poly = items.map((it, i) => pt(i, Math.max(0, Math.min(10, it.score ?? 0)) / 10).join(',')).join(' ')
   return (
-    <div className="relative mx-auto w-full max-w-[400px]">
+    <div className="relative mx-auto w-full max-w-[460px]">
       <svg
-        viewBox={`0 0 ${size} ${size}`}
+        viewBox={`${-padX} 0 ${size + padX * 2} ${size}`}
         className="w-full"
         role="img"
         aria-label="Answer quality by dimension"

@@ -11,10 +11,47 @@ InterviewForge is a local-first, zero-cost, open-source mock interview platform:
 - **Honest.** The ATS score is an *ATS-style compatibility* estimate. The readiness score is a *practice metric*,
   never a hiring prediction. When no AI model is available, the app says so and uses its offline engine.
 
+<p align="center">
+  <img src="docs/screenshots/landing.png" alt="InterviewForge landing page" width="900">
+</p>
+
+## Screenshots
+
+> All screenshots use the bundled **fictional** sample resume (`tests/fixtures/sample_resume.pdf`) and were
+> evaluated by a local `qwen2.5:3b` model through Ollama.
+
+**Resume analysis: ATS-style score, job-description match and keyword gaps**
+
+<img src="docs/screenshots/resume-analysis.png" alt="ATS-style score with 11 weighted dimensions, JD match with evidence, matched/missing/weak keywords and recommendations" width="900">
+
+**Resume parser: the structured profile the interviewer plans its questions from**
+
+<img src="docs/screenshots/resume-profile.png" alt="Parsed candidate profile: contact details, grouped skills, experience, projects, education and verifiable claims" width="900">
+
+<table>
+  <tr>
+    <td width="50%"><b>Configure the interview</b><br><img src="docs/screenshots/setup.png" alt="Interview setup: role, level, type, difficulty, length, personality and voice or text mode"></td>
+    <td width="50%"><b>Live interview (voice or text, dark mode)</b><br><img src="docs/screenshots/interview.png" alt="Interview room in dark mode with a resume-grounded question, transcript and microphone"></td>
+  </tr>
+</table>
+
+**Interview report: overall scores, category breakdown and answer quality**
+
+<img src="docs/screenshots/report-scores.png" alt="Report with executive summary, ATS, JD match, interview and readiness scores, category breakdown and radar chart" width="900">
+
+**Question-by-question review, including follow-ups and claim verification**
+
+<img src="docs/screenshots/report-questions.png" alt="Per-question scores with labels such as Strong, Vague and Incomplete, follow-ups and claim confidence" width="900">
+
+**Dashboard: progress across interviews**
+
+<img src="docs/screenshots/dashboard.png" alt="Dashboard with ATS, interview, JD match and readiness scores, progress chart, weak skills and resume health" width="900">
+
 ---
 
 ## Contents
 
+1. [Screenshots](#screenshots)
 1. [Features](#features)
 2. [Architecture](#architecture)
 3. [Requirements](#requirements)
