@@ -118,7 +118,11 @@ def install_backend(dev: bool, force: bool = False) -> None:
             shutil.rmtree(VENV, ignore_errors=True)  # broken, e.g. the folder was moved or Python was upgraded
         code = subprocess.call([sys.executable, "-m", "venv", str(VENV)])
         if code != 0 or not VENV_PY.exists():
-            hint = "sudo apt install python3-venv" if sys.platform.startswith("linux") else "reinstall Python"
+            hint = (
+                f"sudo apt install python{sys.version_info[0]}.{sys.version_info[1]}-venv"
+                if sys.platform.startswith("linux")
+                else "reinstalling Python from https://www.python.org/downloads/"
+            )
             fail(f"could not create a virtual environment. Try: {hint}")
         force = True
     req = BACKEND / ("requirements-dev.txt" if dev else "requirements.txt")
